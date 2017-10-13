@@ -26,7 +26,7 @@ class Binder
         return $binder->readCompiledFile($compiled);
     }
 
-    public static function generateCompiledFile(Event $event): bool
+    public static function generate(Event $event): bool
     {
         $vendor = $event->getComposer()->getConfig()->get('vendor-dir');
         $root = realpath($vendor . '/../');
