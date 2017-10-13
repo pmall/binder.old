@@ -12,7 +12,7 @@ class Binder
     public static function getInstance(string $root): Binder
     {
         $parser = Parser::getInstance($root);
-        $factory = function ($class) { new $class; };
+        $factory = function ($class) { return new $class; };
 
         return new Binder($parser, $factory);
     }
