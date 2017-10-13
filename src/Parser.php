@@ -55,7 +55,7 @@ class Parser
      */
     public function write(string $path, array $data): bool
     {
-        $contents = json_encode($data);
+        $contents = json_encode($data, JSON_PRETTY_PRINT) . "\n";
 
         return $this->filesystem->put($path, $contents);
     }

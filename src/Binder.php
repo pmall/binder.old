@@ -28,14 +28,14 @@ class Binder
 
     public static function generateCompiledFile(Event $event): bool
     {
-        $vendor = $event->getComposer()->getConfig('vendor-dir');
+        $vendor = $event->getComposer()->getConfig()->get('vendor-dir');
         $root = realpath($vendor . '/../');
-        $installed = $vendor . '/composer/installed.json';
+        $installed = './vendor/composer/installed.json';
         $compiled = $event->getArguments()[0] ?? './bindings.json';
 
         $binder = Binder::getInstance($root);
 
-        $binder->writeCompiledFile($installed, $compiled);
+        return $binder->writeCompiledFile($installed, $compiled);
     }
 
     public function __construct(Parser $parser, callable $factory)
