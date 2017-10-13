@@ -2,29 +2,38 @@
 
 namespace Ellipse\Binder;
 
+use Composer\Script\Event;
+
 class Binder
 {
     private $parser;
     private $factory;
 
-    public static function getInstance(): Binder
+    public static function getInstance(string $root): Binder
     {
-        $parser = Parser::getInstance();
+        $parser = Parser::getInstance($root);
         $factory = function ($class) { new $class; };
 
-        return new Binder($parser);
+        return new Binder($parser, $factory);
     }
 
-    public static function getServiceProviders(string $compiled): array
+    public static function getServiceProviders(string $path): array
     {
-        $binder = Binder::getInstance();
+        [$root, $compiled] = array_values(pathinfo($path));
+
+        $binder = Binder::getInstance($root);
 
         return $binder->readCompiledFile($compiled);
     }
 
-    public static function generateCompiledFile(string $installed, string $compiled): bool
+    public static function generateCompiledFile(Event $event): bool
     {
-        $binder = Binder::getInstance();
+        $vendor = $event->getComposer()->getConfig('vendor-dir');
+        $root = realpath($vendor . '/../');
+        $installed = $vendor . '/composer/installed.json';
+        $compiled = $event->getArguments()[0] ?? './bindings.json';
+
+        $binder = Binder::getInstance($root);
 
         $binder->writeCompiledFile($installed, $compiled);
     }
@@ -37,31 +46,33 @@ class Binder
 
     public function readCompiledFile(string $compiled): array
     {
-        if (! file_exists($bindings)) {
-
-            throw new CompiledFileNotFoundException($bindings);
-
-        }
-
-        $data = $this->parser->read($bindings);
+        $data = $this->parser->read($compiled);
 
         $classes = $data['providers'] ?? [];
 
         return array_map($this->factory, $classes);
     }
 
+    /**
+     * Read service providers provided given installed file and write a compiled
+     * file to the given path.
+     *
+     * @param string $installed
+     * @param string $compiled
+     * @return bool
+     */
     public function writeCompiledFile(string $installed, string $compiled): bool
     {
-        $data = $this->parser->read($installed);
+        $manifests = $this->parser->read($installed);
 
-        $classes = array_map(function ($package) {
+        $providers = array_map(function ($manifest) {
 
-            return $package['extras']['ellipse']['provider'] ?? null;
+            return $manifest['extra']['binder']['provider'] ?? null;
 
-        }, $data);
+        }, $manifests);
 
-        $classes = array_filter($classes);
+        $providers = array_values(array_filter($providers));
 
-        return $this->parser->write($compiled, ['providers' => $classes]);
+        return $this->parser->write($compiled, ['providers' => $providers]);
     }
 }
