@@ -1,7 +1,7 @@
 <?php
 
+use Ellipse\Binder;
 use Ellipse\Binder\Parser;
-use Ellipse\Binder\Binder;
 
 interface BinderCallable
 {

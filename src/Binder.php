@@ -1,8 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace Ellipse\Binder;
+namespace Ellipse;
 
 use Composer\Script\Event;
+
+use Ellipse\Binder\Parser;
 
 class Binder
 {
