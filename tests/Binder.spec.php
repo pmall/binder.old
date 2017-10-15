@@ -19,6 +19,18 @@ describe('Binder', function () {
 
     });
 
+    describe('::getInstance()', function () {
+
+        it('should return a Binder', function () {
+
+            $test = Binder::getInstance(sys_get_temp_dir());
+
+            expect($test)->to->be->an->instanceof(Binder::class);
+
+        });
+
+    });
+
     describe('->readCompiledFile()', function () {
 
         it('should return service providers from the given compiled file path', function () {

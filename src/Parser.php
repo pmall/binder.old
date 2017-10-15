@@ -9,6 +9,13 @@ use League\Flysystem\Adapter\Local;
 class Parser
 {
     /**
+     * The filesystem to use.
+     *
+     * @var \League\Flysystem\FilesystemInterface
+     */
+    private $parser;
+
+    /**
      * Return a parser using a local filesystem with the given root.
      *
      * @param string $root
