@@ -37,21 +37,6 @@ class Binder
     }
 
     /**
-     * Command to generate the compiled file from a composer event.
-     *
-     * @param \Composer\Script\Event $event
-     * @return bool
-     */
-    public static function generate(Event $event): bool
-    {
-        $vendor = $event->getComposer()->getConfig()->get('vendor-dir');
-
-        $root = realpath($vendor . '/..');
-
-        return Binder::newInstance($root)->writeBindings();
-    }
-
-    /**
      * Return an array of service providers from the given root path.
      *
      * @param string $root

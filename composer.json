@@ -1,7 +1,7 @@
 {
     "name": "ellipse/binder",
-    "type": "library",
-    "description": "The ellipse framework's utility for service provider auto discovery",
+    "type": "composer-plugin",
+    "description": "Service provider auto discovery plugin",
     "keywords": [
         "service-provider",
         "package",
@@ -23,13 +23,15 @@
     "prefer-stable": true,
     "require": {
         "php": ">=7.1",
+        "composer-plugin-api": "^1.1",
         "league/flysystem": "^1.0"
     },
     "require-dev": {
         "peridot-php/peridot": "^1.19",
         "peridot-php/leo": "^1.6",
         "mockery/mockery": "^1.0@alpha",
-        "league/flysystem-vfs": "^1.0"
+        "league/flysystem-vfs": "^1.0",
+        "composer/composer": "^1.5"
     },
     "autoload": {
         "psr-4": {
@@ -37,6 +39,7 @@
         }
     },
     "extra": {
+        "class": "Ellipse\\Binder\\Plugin",
         "branch-alias": {
             "dev-master": "1.0.x-dev"
         }
