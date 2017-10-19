@@ -14,7 +14,9 @@ describe('Plugin', function () {
         $this->composer = Mockery::mock(Composer::class);
         $this->io = Mockery::mock(IOInterface::class);
 
-        $this->plugin = new Plugin($this->composer, $this->io);
+        $this->plugin = new Plugin;
+
+        $this->plugin->activate($this->composer, $this->io);
 
     });
 
@@ -27,6 +29,20 @@ describe('Plugin', function () {
     it('should implement EventSubscriberInterface', function () {
 
         expect($this->plugin)->to->be->an->instanceof(EventSubscriberInterface::class);
+
+    });
+
+    describe('->generate()', function () {
+
+        it('should ...', function () {
+
+            $this->composer->shouldReceive('getConfig->get')->once()
+                ->with('vendor-dir')
+                ->andReturn(sys_get_temp_dir());
+
+            expect([$this->plugin, 'generate'])->to->throw(\Exception::class);
+
+        });
 
     });
 

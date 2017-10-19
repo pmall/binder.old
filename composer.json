@@ -30,7 +30,6 @@
         "peridot-php/peridot": "^1.19",
         "peridot-php/leo": "^1.6",
         "mockery/mockery": "^1.0@alpha",
-        "league/flysystem-vfs": "^1.0",
         "composer/composer": "^1.5"
     },
     "autoload": {

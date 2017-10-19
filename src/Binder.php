@@ -2,42 +2,34 @@
 
 namespace Ellipse;
 
-use Composer\Script\Event;
-
-use Ellipse\Binder\Parser;
+use League\Flysystem\FilesystemInterface;
+use League\Flysystem\Filesystem;
+use League\Flysystem\Adapter\Local;
 
 class Binder
 {
     /**
-     * The parser used to read json files.
+     * The filesystem to use.
      *
-     * @var \Ellipse\Binder\Parser
+     * @var \League\Flysystem\FilesystemInterface
      */
-    private $parser;
+    private $filesystem;
 
     /**
-     * The factory used to create service providers from their class names.
-     *
-     * @var callable
-     */
-    private $factory;
-
-    /**
-     * Return a binder instance from the given project root path.
+     * Return a binder instance with the given project root path.
      *
      * @param string $root
-     * @return Ellipse\Binder\Binder
+     * @return Ellipse\Binder
      */
     public static function newInstance(string $root): Binder
     {
-        $parser = Parser::newInstance($root);
-        $factory = function ($class) { return new $class; };
+        $filesystem = new Filesystem(new Local($root));
 
-        return new Binder($parser, $factory);
+        return new Binder($filesystem);
     }
 
     /**
-     * Return an array of service providers from the given root path.
+     * Return an array of service providers using the given root path.
      *
      * @param string $root
      * @return array
@@ -48,16 +40,13 @@ class Binder
     }
 
     /**
-     * Set up a builder with the given parser an the given service provider
-     * factory.
+     * Set up a binder with the given filesystem.
      *
-     * @param \Ellipse\Binder\Parser    $parser
-     * @param callable                  $factory
+     * @param \League\Flysystem\FilesystemInterface $filesystem
      */
-    public function __construct(Parser $parser, callable $factory)
+    public function __construct(FilesystemInterface $filesystem)
     {
-        $this->parser = $parser;
-        $this->factory = $factory;
+        $this->filesystem = $filesystem;
     }
 
     /**
@@ -67,31 +56,57 @@ class Binder
      */
     public function readBindings(): array
     {
-        $data = $this->parser->read('composer.json');
+        $contents = $this->filesystem->read('composer.json');
+
+        $data = json_decode($contents, true);
 
         $classes = $data['extra']['binder']['providers'] ?? [];
 
-        return array_map($this->factory, $classes);
+        $factory = function ($class) { return new $class; };
+
+        return array_map($factory, $classes);
     }
 
     /**
-     * Write the installed packages bindings to the composer file extra field.
+     * Return the list of service provider classes provided by the installed
+     * packages.
      *
-     * @return bool
+     * @return array
      */
-    public function writeBindings(): bool
+    public function collectBindings(): array
     {
-        $data = $this->parser->read('composer.json');
-        $manifests = $this->parser->read('vendor/composer/installed.json');
+        $contents = $this->filesystem->read('vendor/composer/installed.json');
 
-        $providers = array_map(function ($manifest) {
+        $manifests = json_decode($contents, true);
+
+        $classes = array_map(function ($manifest) {
 
             return $manifest['extra']['binder']['provider'] ?? null;
 
         }, $manifests);
 
-        $data['extra']['binder']['providers'] = array_values(array_filter($providers));
+        return array_values(array_filter($classes));
+    }
 
-        return $this->parser->write('composer.json', $data);
+    /**
+     * Write the given service provider classes to the composer.json extra
+     * field.
+     *
+     * @param array $classes
+     * @return bool
+     */
+    public function writeBindings(array $classes): bool
+    {
+        if (count($classes) == 0) return true;
+
+        $contents = $this->filesystem->read('composer.json');
+
+        $data = json_decode($contents, true);
+
+        $data['extra']['binder']['providers'] = $classes;
+
+        $contents = json_encode($data, 448);
+
+        return $this->filesystem->put('composer.json', $contents);
     }
 }

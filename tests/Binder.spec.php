@@ -1,21 +1,16 @@
 <?php
 
-use Ellipse\Binder;
-use Ellipse\Binder\Parser;
+use League\Flysystem\FilesystemInterface;
 
-interface BinderCallable
-{
-    public function __invoke();
-}
+use Ellipse\Binder;
 
 describe('Binder', function () {
 
     beforeEach(function () {
 
-        $this->parser = Mockery::mock(Parser::class);
-        $this->factory = Mockery::mock(BinderCallable::class);
+        $this->filesystem = Mockery::mock(FilesystemInterface::class);
 
-        $this->binder = new Binder($this->parser, $this->factory);
+        $this->binder = new Binder($this->filesystem);
 
     });
 
@@ -33,34 +28,31 @@ describe('Binder', function () {
 
     describe('->readBindings()', function () {
 
-        it('should return service providers from the given compiled file path', function () {
+        it('should return service providers from the composer.json file', function () {
 
-            $a = new class {};
-            $b = new class {};
+            class A {};
+            class B {};
 
-            $this->parser->shouldReceive('read')->once()
+            $data = ['extra' => ['binder' => ['providers' => ['A', 'B']]]];
+
+            $this->filesystem->shouldReceive('read')->once()
                 ->with('composer.json')
-                ->andReturn(['extra' => ['binder' => ['providers' => ['A', 'B']]]]);
-
-            $this->factory->shouldReceive('__invoke')->once()
-                ->with('A')
-                ->andReturn($a);
-
-            $this->factory->shouldReceive('__invoke')->once()
-                ->with('B')
-                ->andReturn($b);
+                ->andReturn(json_encode($data));
 
             $test = $this->binder->readBindings();
 
-            expect($test)->to->be->equal([$a, $b]);
+            expect($test)->to->be->an('array');
+            expect($test)->to->have->length(2);
+            expect($test[0])->to->be->an->instanceof(A::class);
+            expect($test[1])->to->be->an->instanceof(B::class);
 
         });
 
-        it('should return an empty array when no service provider is defined', function () {
+        it('should return an empty array when there is no service provider in the composer.json file', function () {
 
-            $this->parser->shouldReceive('read')->once()
+            $this->filesystem->shouldReceive('read')->once()
                 ->with('composer.json')
-                ->andReturn([]);
+                ->andReturn('');
 
             $test = $this->binder->readBindings();
 
@@ -70,7 +62,7 @@ describe('Binder', function () {
 
     });
 
-    describe('->writeBindings()', function () {
+    describe('->collectBindings()', function () {
 
         beforeEach(function () {
 
@@ -82,35 +74,65 @@ describe('Binder', function () {
                 ['extra' => ['binder' => ['provider' => 'B']]],
             ];
 
-            $this->parser->shouldReceive('read')->once()
-                ->with('composer.json')
-                ->andReturn(['type' => 'library']);
-
-            $this->parser->shouldReceive('read')->once()
+            $this->filesystem->shouldReceive('read')->once()
                 ->with('vendor/composer/installed.json')
-                ->andReturn($manifests);
+                ->andReturn(json_encode($manifests));
 
         });
 
-        it('should whrite the service provider classes provided by the installed packages to the composer.json file', function () {
+        it('should return the service provider classes provided by the installed packages', function () {
 
-            $this->parser->shouldReceive('write')->once()
-                ->with('composer.json', ['type' => 'library', 'extra' => ['binder' => ['providers' => ['A', 'B']]]])
-                ->andReturn(true);
+            $test = $this->binder->collectBindings();
 
-            $test = $this->binder->writeBindings();
+            expect($test)->to->be->equal(['A', 'B']);
+
+        });
+
+    });
+
+    describe('->writeBindings()', function () {
+
+        it('should return true when the given list of classes is empty', function () {
+
+            $test = $this->binder->writeBindings([]);
 
             expect($test)->to->be->true();
 
         });
 
-        it('should return false when the parser ->write() method return false', function () {
+        it('should return true when the filesystem successfully wrote the given classes to the composer.json file', function () {
 
-            $this->parser->shouldReceive('write')->once()
-                ->with('composer.json', ['type' => 'library', 'extra' => ['binder' => ['providers' => ['A', 'B']]]])
+            $old = json_encode(['type' => 'library']);
+            $new = json_encode(['type' => 'library', 'extra' => ['binder' => ['providers' => ['A', 'B']]]], 448);
+
+            $this->filesystem->shouldReceive('read')->once()
+                ->with('composer.json')
+                ->andReturn($old);
+
+            $this->filesystem->shouldReceive('put')->once()
+                ->with('composer.json', $new)
+                ->andReturn(true);
+
+            $test = $this->binder->writeBindings(['A', 'B']);
+
+            expect($test)->to->be->true();
+
+        });
+
+        it('should return false when the filesystem failed to write the given classes to the composer.json file', function () {
+
+            $old = json_encode(['type' => 'library']);
+            $new = json_encode(['type' => 'library', 'extra' => ['binder' => ['providers' => ['A', 'B']]]], 448);
+
+            $this->filesystem->shouldReceive('read')->once()
+                ->with('composer.json')
+                ->andReturn($old);
+
+            $this->filesystem->shouldReceive('put')->once()
+                ->with('composer.json', $new)
                 ->andReturn(false);
 
-            $test = $this->binder->writeBindings();
+            $test = $this->binder->writeBindings(['A', 'B']);
 
             expect($test)->to->be->false();
 

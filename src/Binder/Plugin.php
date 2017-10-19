@@ -56,6 +56,17 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
         $root = realpath($vendor . '/..');
 
-        return Binder::newInstance($root)->writeBindings();
+        $binder = Binder::newInstance($root);
+
+        $classes = $binder->collectBindings();
+
+        if ($success = $binder->writeBindings($classes)) {
+
+            $this->io->write('Service provider auto-discovery:', true);
+            $this->io->write(json_encode($classes, JSON_PRETTY_PRINT), true);
+
+        }
+
+        return $success;
     }
 }
