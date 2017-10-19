@@ -19,11 +19,11 @@ describe('Binder', function () {
 
     });
 
-    describe('::getInstance()', function () {
+    describe('::newInstance()', function () {
 
         it('should return a Binder', function () {
 
-            $test = Binder::getInstance(sys_get_temp_dir());
+            $test = Binder::newInstance(sys_get_temp_dir());
 
             expect($test)->to->be->an->instanceof(Binder::class);
 
@@ -31,7 +31,7 @@ describe('Binder', function () {
 
     });
 
-    describe('->readCompiledFile()', function () {
+    describe('->readBindings()', function () {
 
         it('should return service providers from the given compiled file path', function () {
 
@@ -39,8 +39,8 @@ describe('Binder', function () {
             $b = new class {};
 
             $this->parser->shouldReceive('read')->once()
-                ->with('binder.json')
-                ->andReturn(['providers' => ['A', 'B']]);
+                ->with('composer.json')
+                ->andReturn(['extra' => ['binder' => ['providers' => ['A', 'B']]]]);
 
             $this->factory->shouldReceive('__invoke')->once()
                 ->with('A')
@@ -50,7 +50,7 @@ describe('Binder', function () {
                 ->with('B')
                 ->andReturn($b);
 
-            $test = $this->binder->readCompiledFile('binder.json');
+            $test = $this->binder->readBindings();
 
             expect($test)->to->be->equal([$a, $b]);
 
@@ -59,10 +59,10 @@ describe('Binder', function () {
         it('should return an empty array when no service provider is defined', function () {
 
             $this->parser->shouldReceive('read')->once()
-                ->with('binder.json')
+                ->with('composer.json')
                 ->andReturn([]);
 
-            $test = $this->binder->readCompiledFile('binder.json');
+            $test = $this->binder->readBindings();
 
             expect($test)->to->be->equal([]);
 
@@ -70,7 +70,7 @@ describe('Binder', function () {
 
     });
 
-    describe('->writeCompiledFile()', function () {
+    describe('->writeBindings()', function () {
 
         beforeEach(function () {
 
@@ -83,18 +83,22 @@ describe('Binder', function () {
             ];
 
             $this->parser->shouldReceive('read')->once()
-                ->with('installed.json')
+                ->with('composer.json')
+                ->andReturn(['type' => 'library']);
+
+            $this->parser->shouldReceive('read')->once()
+                ->with('vendor/composer/installed.json')
                 ->andReturn($manifests);
 
         });
 
-        it('should read service providers provided given installed file and write a compiled file to the given path', function () {
+        it('should whrite the service provider classes provided by the installed packages to the composer.json file', function () {
 
             $this->parser->shouldReceive('write')->once()
-                ->with('binder.json', ['providers' => ['A', 'B']])
+                ->with('composer.json', ['type' => 'library', 'extra' => ['binder' => ['providers' => ['A', 'B']]]])
                 ->andReturn(true);
 
-            $test = $this->binder->writeCompiledFile('installed.json', 'binder.json');
+            $test = $this->binder->writeBindings();
 
             expect($test)->to->be->true();
 
@@ -103,10 +107,10 @@ describe('Binder', function () {
         it('should return false when the parser ->write() method return false', function () {
 
             $this->parser->shouldReceive('write')->once()
-                ->with('binder.json', ['providers' => ['A', 'B']])
+                ->with('composer.json', ['type' => 'library', 'extra' => ['binder' => ['providers' => ['A', 'B']]]])
                 ->andReturn(false);
 
-            $test = $this->binder->writeCompiledFile('installed.json', 'binder.json');
+            $test = $this->binder->writeBindings();
 
             expect($test)->to->be->false();
 

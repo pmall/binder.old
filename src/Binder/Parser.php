@@ -21,7 +21,7 @@ class Parser
      * @param string $root
      * @return \Ellipse\Binder\Parser
      */
-    public static function getInstance(string $root): Parser
+    public static function newInstance(string $root): Parser
     {
         $adapter = new Local($root);
 
@@ -62,7 +62,7 @@ class Parser
      */
     public function write(string $path, array $data): bool
     {
-        $contents = json_encode($data, JSON_PRETTY_PRINT) . "\n";
+        $contents = json_encode($data, 448) . "\n";
 
         return $this->filesystem->put($path, $contents);
     }

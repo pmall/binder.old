@@ -20,11 +20,11 @@ describe('Parser', function () {
 
     });
 
-    describe('::getInstance()', function () {
+    describe('::newInstance()', function () {
 
         it('should return a parser using a local filesystem with the given root', function () {
 
-            $test = Parser::getInstance('.');
+            $test = Parser::newInstance(sys_get_temp_dir());
 
             expect($test)->to->be->an->instanceof(Parser::class);
 

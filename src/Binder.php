@@ -28,9 +28,9 @@ class Binder
      * @param string $root
      * @return Ellipse\Binder\Binder
      */
-    public static function getInstance(string $root): Binder
+    public static function newInstance(string $root): Binder
     {
-        $parser = Parser::getInstance($root);
+        $parser = Parser::newInstance($root);
         $factory = function ($class) { return new $class; };
 
         return new Binder($parser, $factory);
@@ -46,30 +46,20 @@ class Binder
     {
         $vendor = $event->getComposer()->getConfig()->get('vendor-dir');
 
-        [$root] = array_values(pathinfo($vendor));
+        $root = realpath($vendor . '/..');
 
-        $installed = './vendor/composer/installed.json';
-        $compiled = './bindings.json';
-
-        $binder = Binder::getInstance($root);
-
-        return $binder->writeCompiledFile($installed, $compiled);
+        return Binder::newInstance($root)->writeBindings();
     }
 
     /**
-     * Return an array of service providers from the given compiled file
-     * absolute path.
+     * Return an array of service providers from the given root path.
      *
-     * @param string $path
+     * @param string $root
      * @return array
      */
-    public static function getServiceProviders(string $path): array
+    public static function getServiceProviders(string $root): array
     {
-        [$root, $compiled] = array_values(pathinfo($path));
-
-        $binder = Binder::getInstance($root);
-
-        return $binder->readCompiledFile($compiled);
+        return Binder::newInstance($root)->readBindings();
     }
 
     /**
@@ -86,31 +76,28 @@ class Binder
     }
 
     /**
-     * Return a list of service providers from the given compiled file path.
+     * Return a list of service providers from the composer file extra field.
      *
-     * @param string $compiled
      * @return array
      */
-    public function readCompiledFile(string $compiled): array
+    public function readBindings(): array
     {
-        $data = $this->parser->read($compiled);
+        $data = $this->parser->read('composer.json');
 
-        $classes = $data['providers'] ?? [];
+        $classes = $data['extra']['binder']['providers'] ?? [];
 
         return array_map($this->factory, $classes);
     }
 
     /**
-     * Read service providers provided given installed file and write a compiled
-     * file to the given path.
+     * Write the installed packages bindings to the composer file extra field.
      *
-     * @param string $installed
-     * @param string $compiled
      * @return bool
      */
-    public function writeCompiledFile(string $installed, string $compiled): bool
+    public function writeBindings(): bool
     {
-        $manifests = $this->parser->read($installed);
+        $data = $this->parser->read('composer.json');
+        $manifests = $this->parser->read('vendor/composer/installed.json');
 
         $providers = array_map(function ($manifest) {
 
@@ -118,8 +105,8 @@ class Binder
 
         }, $manifests);
 
-        $providers = array_values(array_filter($providers));
+        $data['extra']['binder']['providers'] = array_values(array_filter($providers));
 
-        return $this->parser->write($compiled, ['providers' => $providers]);
+        return $this->parser->write('composer.json', $data);
     }
 }
