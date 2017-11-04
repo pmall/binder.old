@@ -2,111 +2,53 @@
 
 namespace Ellipse;
 
-use League\Flysystem\FilesystemInterface;
-use League\Flysystem\Filesystem;
-use League\Flysystem\Adapter\Local;
+use Ellipse\Binder\Project;
+use Ellipse\Binder\ServiceProviderCollection;
 
 class Binder
 {
     /**
-     * The filesystem to use.
+     * The project.
      *
-     * @var \League\Flysystem\FilesystemInterface
+     * @var \Ellipse\Binder\Project
      */
-    private $filesystem;
+    private $project;
 
     /**
-     * Return a binder instance with the given project root path.
+     * Return a binder with the given project root path.
      *
      * @param string $root
      * @return Ellipse\Binder
      */
     public static function newInstance(string $root): Binder
     {
-        $filesystem = new Filesystem(new Local($root));
+        $project = Project::newInstance($root);
 
-        return new Binder($filesystem);
+        return new Binder($project);
     }
 
     /**
-     * Return an array of service providers using the given root path.
+     * Set up a binder with the given project.
      *
-     * @param string $root
-     * @return array
+     * @param \Ellipse\Binder\Project $project
      */
-    public static function getServiceProviders(string $root): array
+    public function __construct(Project $project)
     {
-        return Binder::newInstance($root)->readBindings();
+        $this->project = $project;
     }
 
     /**
-     * Set up a binder with the given filesystem.
-     *
-     * @param \League\Flysystem\FilesystemInterface $filesystem
-     */
-    public function __construct(FilesystemInterface $filesystem)
-    {
-        $this->filesystem = $filesystem;
-    }
-
-    /**
-     * Return a list of service providers from the composer file extra field.
+     * Return an array of service providers built from the project manifest file
+     * definitions.
      *
      * @return array
      */
-    public function readBindings(): array
+    public function providers(): array
     {
-        $contents = $this->filesystem->read('composer.json');
+        $manifest = $this->project->manifest();
 
-        $data = json_decode($contents, true);
+        $list = new ServiceProviderCollection($manifest);
 
-        $classes = $data['extra']['binder']['providers'] ?? [];
-
-        $factory = function ($class) { return new $class; };
-
-        return array_map($factory, $classes);
-    }
-
-    /**
-     * Return the list of service provider classes provided by the installed
-     * packages.
-     *
-     * @return array
-     */
-    public function collectBindings(): array
-    {
-        $contents = $this->filesystem->read('vendor/composer/installed.json');
-
-        $manifests = json_decode($contents, true);
-
-        $classes = array_map(function ($manifest) {
-
-            return $manifest['extra']['binder']['provider'] ?? null;
-
-        }, $manifests);
-
-        return array_values(array_filter($classes));
-    }
-
-    /**
-     * Write the given service provider classes to the composer.json extra
-     * field.
-     *
-     * @param array $classes
-     * @return bool
-     */
-    public function writeBindings(array $classes): bool
-    {
-        if (count($classes) == 0) return true;
-
-        $contents = $this->filesystem->read('composer.json');
-
-        $data = json_decode($contents, true);
-
-        $data['extra']['binder']['providers'] = $classes;
-
-        $contents = json_encode($data, 448);
-
-        return $this->filesystem->put('composer.json', $contents);
+        return $list->toArray();
     }
 }

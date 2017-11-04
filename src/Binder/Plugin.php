@@ -7,8 +7,6 @@ use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\EventDispatcher\EventSubscriberInterface;
 
-use Ellipse\Binder;
-
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
     /**
@@ -40,30 +38,35 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            'post-install-cmd' => 'generate',
-            'post-update-cmd' => 'generate',
+            'post-install-cmd' => 'update',
+            'post-update-cmd' => 'update',
         ];
     }
 
     /**
-     * Event handler to generate the compiled file.
+     * Event handler updating the project manifest file.
      *
      * @return bool
      */
-    public function generate(): bool
+    public function update(): bool
     {
         $vendor = $this->composer->getConfig()->get('vendor-dir');
 
         $root = realpath($vendor . '/..');
 
-        $binder = Binder::newInstance($root);
+        $project = Project::newInstance($root);
 
-        $classes = $binder->collectBindings();
+        $manifest = $project->manifest();
+        $installed = $project->installed();
 
-        if ($success = $binder->writeBindings($classes)) {
+        $success = $manifest->updateWith($installed);
+
+        if ($success) {
+
+            $definitions = $manifest->definitions();
 
             $this->io->write('Service provider auto-discovery:', true);
-            $this->io->write(json_encode($classes, JSON_PRETTY_PRINT), true);
+            $this->io->write(json_encode($definitions, JSON_PRETTY_PRINT), true);
 
         }
 
