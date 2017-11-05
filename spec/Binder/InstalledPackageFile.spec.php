@@ -1,11 +1,12 @@
 <?php
 
+require __DIR__ . '/../Fixtures/definition.php';
+
 use function Eloquent\Phony\Kahlan\mock;
 
 use Ellipse\Binder\JsonFile;
 use Ellipse\Binder\InstalledPackageFile;
 use Ellipse\Binder\DefinitionFileInterface;
-use Ellipse\Binder\ServiceProviderCollection;
 
 describe('InstalledPackageFile', function () {
 
@@ -27,19 +28,8 @@ describe('InstalledPackageFile', function () {
 
         it('should return the service provider definitions contained in the file', function () {
 
-            $definitions1 = [
-                [
-                    'type' => ServiceProviderCollection::CLASS_TYPE,
-                    'value' => 'App\\SomeClass',
-                ],
-            ];
-
-            $definitions2 = [
-                [
-                    'type' => ServiceProviderCollection::CLASS_TYPE,
-                    'value' => 'App\\SomeOtherClass',
-                ],
-            ];
+            $definitions1 = definitions(['App\\SomeClass']);
+            $definitions2 = definitions(['App\\SomeOtherClass']);
 
             $data = [
                 [],

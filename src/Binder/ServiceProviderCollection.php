@@ -9,27 +9,42 @@ use Ellipse\Binder\Exceptions\InvalidServiceProviderDefinitionException;
 class ServiceProviderCollection
 {
     /**
-     * The value of the class definition type.
-     *
-     * @var string
-     */
-    const CLASS_TYPE = 'class';
-
-    /**
-     * The manifest file containing the service providers.
+     * The manifest file containing the service provider definitions.
      *
      * @var \Ellipse\Binder\ManifestFile
      */
     private $manifest;
 
     /**
-     * Set up a service provider list from the given manifest file.
+     * The service provider factory.
      *
-     * @param \Ellipse\Binder\ManifestFile $manifest
+     * @var \Ellipse\Binder\ServiceProviderFactory
      */
-    public function __construct(ManifestFile $manifest)
+    private $factory;
+
+    /**
+     * Return a new ServiceProviderCollection from the given manifest file.
+     *
+     * @param \Ellipse\Binder\ManifestFile
+     */
+    public static function newInstance(ManifestFile $manifest): ServiceProviderCollection
+    {
+        $factory = ServiceProviderFactory::newInstance();
+
+        return new ServiceProviderCollection($manifest, $factory);
+    }
+
+    /**
+     * Set up a service provider collection from the given manifest file and
+     * the given service provider factory.
+     *
+     * @param \Ellipse\Binder\ManifestFile              $manifest
+     * @param \Ellipse\Binder\ServiceProviderFactory    $factory
+     */
+    public function __construct(ManifestFile $manifest, ServiceProviderFactory $factory)
     {
         $this->manifest = $manifest;
+        $this->factory = $factory;
     }
 
     /**
@@ -41,26 +56,6 @@ class ServiceProviderCollection
     {
         $definitions = $this->manifest->definitions();
 
-        return array_map([$this, 'createServiceProvider'], $definitions);
-    }
-
-    /**
-     * Return a service provider from the given definition.
-     *
-     * @param array $definition
-     * @return \Interop\Container\ServiceProviderInterface
-     */
-    private function createServiceProvider(array $definition): ServiceProviderInterface
-    {
-        $type = $definition['type'] ?? null;
-        $value = $definition['value'] ?? null;
-
-        if ($type === self::CLASS_TYPE) {
-
-            return new $value;
-
-        }
-
-        throw new InvalidServiceProviderDefinitionException($definition);
+        return array_map($this->factory, $definitions);
     }
 }

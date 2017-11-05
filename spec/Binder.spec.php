@@ -36,6 +36,7 @@ describe('Binder', function () {
 
             $providers = [
                 mock(ServiceProviderInterface::class)->get(),
+                mock(ServiceProviderInterface::class)->get(),
             ];
 
             $collection = mock(ServiceProviderCollection::class);

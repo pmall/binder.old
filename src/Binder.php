@@ -38,8 +38,8 @@ class Binder
     }
 
     /**
-     * Return an array of service providers built from the project manifest file
-     * definitions.
+     * Return an array of service providers from the project manifest file.
+     * .
      *
      * @return array
      */
@@ -47,8 +47,6 @@ class Binder
     {
         $manifest = $this->project->manifest();
 
-        $list = new ServiceProviderCollection($manifest);
-
-        return $list->toArray();
+        return ServiceProviderCollection::newInstance($manifest)->toArray();
     }
 }

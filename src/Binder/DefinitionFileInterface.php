@@ -5,7 +5,7 @@ namespace Ellipse\Binder;
 interface DefinitionFileInterface
 {
     /**
-     * The key value the service providers definitions are stored under.
+     * The value of the key containing the service provider definitions.
      *
      * @var string
      */

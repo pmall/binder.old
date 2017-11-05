@@ -1,76 +1,59 @@
 <?php
 
+require __DIR__ . '/../Fixtures/definition.php';
+
 use function Eloquent\Phony\Kahlan\mock;
-use function Eloquent\Phony\Kahlan\onStatic;
 
 use Interop\Container\ServiceProviderInterface;
 
 use Ellipse\Binder\ManifestFile;
+use Ellipse\Binder\ServiceProviderFactory;
 use Ellipse\Binder\ServiceProviderCollection;
-use Ellipse\Binder\Exceptions\InvalidServiceProviderDefinitionException;
 
 describe('ServiceProviderCollection', function () {
 
     beforeEach(function () {
 
         $this->manifest = mock(ManifestFile::class);
+        $this->factory = mock(ServiceProviderFactory::class);
 
-        $this->collection = new ServiceProviderCollection($this->manifest->get());
+        $this->collection = new ServiceProviderCollection(
+            $this->manifest->get(),
+            $this->factory->get()
+        );
+
+    });
+
+    describe('::newInstance()', function () {
+
+        it('should return a new ServiceProviderCollection', function () {
+
+            $test = ServiceProviderCollection::newInstance($this->manifest->get());
+
+            expect($test)->toBeAnInstanceOf(ServiceProviderCollection::class);
+
+        });
 
     });
 
     describe('->toArray()', function () {
 
-        beforeEach(function () {
+        it('should proxy the factory ->__invoke() method with all the definition from the manifest file', function () {
 
-            $provider1 = onStatic(mock(ServiceProviderInterface::class));
-            $provider2 = onStatic(mock(ServiceProviderInterface::class));
+            $definition1 = definition('App\\SomeClass');
+            $definition2 = definition('App\\SomeOtherClass');
 
-            $this->name1 = $provider1->className();
-            $this->name2 = $provider2->className();
+            $provider1 = mock(ServiceProviderInterface::class)->get();
+            $provider2 = mock(ServiceProviderInterface::class)->get();
 
-        });
+            $this->manifest->definitions->returns([$definition1, $definition2]);
 
-        it('should return an array of service providers built from the manifest definitions', function () {
-
-            $definitions = [
-                [
-                    'type' => ServiceProviderCollection::CLASS_TYPE,
-                    'value' => $this->name1,
-                ],
-                [
-                    'type' => ServiceProviderCollection::CLASS_TYPE,
-                    'value' => $this->name2,
-                ],
-            ];
-
-            $this->manifest->definitions->returns($definitions);
+            $this->factory->__invoke->with($definition1)->returns($provider1);
+            $this->factory->__invoke->with($definition2)->returns($provider2);
 
             $test = $this->collection->toArray();
 
-            expect($test[0])->toBeAnInstanceOf($this->name1);
-            expect($test[1])->toBeAnInstanceOf($this->name2);
-
-        });
-
-        it('should throw InvalidServiceProviderDefinitionException when one manifest definition is not valid', function () {
-
-            $invalid = [
-                'type' => 'wrong',
-                'value' => $this->name1,
-            ];
-
-            $this->manifest->definitions->returns([$invalid]);
-
-            $test = function () {
-
-                $this->collection->toArray();
-
-            };
-
-            $exception = new InvalidServiceProviderDefinitionException($invalid);
-
-            expect($test)->toThrow($exception);
+            expect($test)->toEqual([$provider1, $provider2]);
 
         });
 

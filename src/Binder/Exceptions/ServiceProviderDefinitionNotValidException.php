@@ -4,7 +4,7 @@ namespace Ellipse\Binder\Exceptions;
 
 use UnexpectedValueException;
 
-class InvalidServiceProviderDefinitionException extends UnexpectedValueException implements BinderExceptionInterface
+class ServiceProviderDefinitionNotValidException extends UnexpectedValueException implements BinderExceptionInterface
 {
     public function __construct($definition)
     {

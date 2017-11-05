@@ -1,13 +1,13 @@
 <?php
 
 use Ellipse\Binder\Exceptions\BinderExceptionInterface;
-use Ellipse\Binder\Exceptions\InvalidServiceProviderDefinitionException;
+use Ellipse\Binder\Exceptions\ServiceProviderTypeNotValidException;
 
-describe('InvalidServiceProviderDefinitionException', function () {
+describe('ServiceProviderTypeNotValidException', function () {
 
     beforeEach(function () {
 
-        $this->exception = new InvalidServiceProviderDefinitionException([]);
+        $this->exception = new ServiceProviderTypeNotValidException('type');
 
     });
 

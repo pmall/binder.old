@@ -1,5 +1,7 @@
 <?php
 
+require __DIR__ . '/../Fixtures/definition.php';
+
 use function Eloquent\Phony\Kahlan\mock;
 
 use Composer\Composer;
@@ -85,12 +87,7 @@ describe('Plugin', function () {
 
             it('should output the new service provider definitions', function () {
 
-                $definitions = [
-                    [
-                        'type' => ServiceProviderCollection::CLASS_TYPE,
-                        'value' => 'App\\SomeClass',
-                    ],
-                ];
+                $definitions = definitions(['App\\SomeClass', 'App\\SomeOtherClass']);
 
                 $this->manifest->definitions->returns($definitions);
 
