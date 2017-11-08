@@ -1,18 +1,20 @@
 <?php declare(strict_types=1);
 
-namespace Ellipse\Binder;
+namespace Ellipse\Binder\Files;
 
-class InstalledPackageFile implements DefinitionFileInterface
+use LogicException;
+
+class MultiManifestFile implements ManifestFileInterface
 {
     /**
-     * The installed package file actual json file.
+     * The json file.
      *
      * @var \Ellipse\Binder\JsonFile
      */
     private $file;
 
     /**
-     * Set up an installed package file with the given json file.
+     * Set up a multi manifest file with the given json file.
      *
      * @param \Ellipse\Binder\JsonFile $file
      */
@@ -24,7 +26,7 @@ class InstalledPackageFile implements DefinitionFileInterface
     /**
      * @inheritdoc
      */
-    public function definitions(): array
+    public function read(): array
     {
         $data = $this->file->read();
 
@@ -37,5 +39,13 @@ class InstalledPackageFile implements DefinitionFileInterface
             return array_merge($reduced, $definitions);
 
         }, []);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function write(array $definitions): bool
+    {
+        throw new LogicException;
     }
 }

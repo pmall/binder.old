@@ -1,43 +1,49 @@
 <?php
 
-require __DIR__ . '/../Fixtures/definition.php';
-
 use function Eloquent\Phony\Kahlan\mock;
 
-use Ellipse\Binder\JsonFile;
+use League\Flysystem\File;
+
+use Ellipse\Binder\DefinitionFactory;
 use Ellipse\Binder\ManifestFile;
-use Ellipse\Binder\DefinitionFileInterface;
-use Ellipse\Binder\ServiceProviderCollection;
+use Ellipse\Binder\Files\DefinitionFile;
+use Ellipse\Binder\Definitions\DefinitionInterface;
 
 describe('ManifestFile', function () {
 
     beforeEach(function () {
 
-        $this->json = mock(JsonFile::class);
+        $this->file = mock(DefinitionFile::class);
 
-        $this->manifest = new ManifestFile($this->json->get());
+        $this->manifest = new ManifestFile($this->file->get());
 
     });
 
-    it('should implement DefinitionFileInterface', function () {
+    describe('::newInstance()', function () {
 
-        expect($this->manifest)->toBeAnInstanceOf(DefinitionFileInterface::class);
+        it('should return a new ManifestFile', function () {
+
+            $file = mock(File::class)->get();
+            $factory = mock(DefinitionFactory::class)->get();
+
+            $test = ManifestFile::newInstance($file, $factory);
+
+            expect($test)->toBeAnInstanceOf(ManifestFile::class);
+
+        });
 
     });
 
     describe('->definitions()', function () {
 
-        it('should return the service provider definitions contained in the file', function () {
+        it('should proxy the definition file ->definitions() method', function () {
 
-            $definitions = definitions(['App\\SomeClass', 'App\\SomeOtherClass']);
-
-            $data = [
-                'extra' => [
-                    DefinitionFileInterface::BINDINGS_KEY => $definitions,
-                ],
+            $definitions = [
+                mock(DefinitionInterface::class)->get(),
+                mock(DefinitionInterface::class)->get(),
             ];
 
-            $this->json->read->returns($data);
+            $this->file->definitions->returns($definitions);
 
             $test = $this->manifest->definitions();
 
@@ -51,62 +57,38 @@ describe('ManifestFile', function () {
 
         beforeEach(function () {
 
-            $this->file = mock(DefinitionFileInterface::class);
-
-        });
-
-        it('should write the manifest to the file with the service provider definitions from the given file', function () {
-
-            $definitions = definitions(['App\\SomeOtherClass', 'App\\YetSomeOtherClass']);
-
-            $before = [
-                'key' => 'value',
-                'extra' => [
-                    DefinitionFileInterface::BINDINGS_KEY => definitions(['App\\SomeClass']),
-                ],
+            $this->definitions = [
+                mock(DefinitionInterface::class)->get(),
+                mock(DefinitionInterface::class)->get(),
             ];
 
-            $after = [
-                'key' => 'value',
-                'extra' => [
-                    DefinitionFileInterface::BINDINGS_KEY => $definitions,
-                ],
-            ];
+        });
 
-            $this->json->read->returns($before);
-            $this->file->definitions->returns($definitions);
+        it('should proxy the definition file ->updateWith() method', function () {
 
-            $test = $this->manifest->updateWith($this->file->get());
+            $this->manifest->updateWith($this->definitions);
 
-            $this->json->write->calledWith($after);
+            $this->file->updateWith->calledWith($this->definitions);
 
         });
 
-        context('when the file ->write() method returns true', function () {
+        it('should should return true when the definition file ->updateWith() method returns true', function () {
 
-            it('should return true', function () {
+            $this->file->updateWith->returns(true);
 
-                $this->json->write->returns(true);
+            $test = $this->manifest->updateWith($this->definitions);
 
-                $test = $this->manifest->updateWith($this->file->get());
-
-                expect($test)->toBeTruthy();
-
-            });
+            expect($test)->toBeTruthy();
 
         });
 
-        context('when the file ->write() method returns false', function () {
+        it('should should return false when the definition file ->updateWith() method returns false', function () {
 
-            it('should return false', function () {
+            $this->file->updateWith->returns(false);
 
-                $this->json->write->returns(false);
+            $test = $this->manifest->updateWith($this->definitions);
 
-                $test = $this->manifest->updateWith($this->file->get());
-
-                expect($test)->toBeFalsy();
-
-            });
+            expect($test)->toBeFalsy();
 
         });
 

@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Ellipse\Binder;
+namespace Ellipse\Binder\Files;
 
-interface DefinitionFileInterface
+interface ManifestFileInterface
 {
     /**
      * The value of the key containing the service provider definitions.
@@ -16,5 +16,13 @@ interface DefinitionFileInterface
      *
      * @return array
      */
-    public function definitions(): array;
+    public function read(): array;
+
+    /**
+     * Write an array of service provider definitions to the file.
+     *
+     * @param array $definitions
+     * @return bool
+     */
+    public function write(array $definitions): bool;
 }

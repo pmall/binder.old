@@ -59,11 +59,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         $manifest = $project->manifest();
         $installed = $project->installed();
 
-        $success = $manifest->updateWith($installed);
+        $definitions = $installed->definitions();
+
+        $success = $manifest->updateWith($definitions);
 
         if ($success) {
-
-            $definitions = $manifest->definitions();
 
             $this->io->write('Service provider auto-discovery:', true);
             $this->io->write(json_encode($definitions, JSON_PRETTY_PRINT), true);

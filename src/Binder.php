@@ -15,10 +15,10 @@ class Binder
     private $project;
 
     /**
-     * Return a binder with the given project root path.
+     * Return a new binder with the given project root path.
      *
      * @param string $root
-     * @return Ellipse\Binder
+     * @return \Ellipse\Binder
      */
     public static function newInstance(string $root): Binder
     {
@@ -39,7 +39,6 @@ class Binder
 
     /**
      * Return an array of service providers from the project manifest file.
-     * .
      *
      * @return array
      */
@@ -47,6 +46,6 @@ class Binder
     {
         $manifest = $this->project->manifest();
 
-        return ServiceProviderCollection::newInstance($manifest)->toArray();
+        return (new ServiceProviderCollection($manifest))->toArray();
     }
 }

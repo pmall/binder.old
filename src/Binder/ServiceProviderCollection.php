@@ -4,47 +4,23 @@ namespace Ellipse\Binder;
 
 use Interop\Container\ServiceProviderInterface;
 
-use Ellipse\Binder\Exceptions\InvalidServiceProviderDefinitionException;
-
 class ServiceProviderCollection
 {
     /**
-     * The manifest file containing the service provider definitions.
+     * The manifest file.
      *
      * @var \Ellipse\Binder\ManifestFile
      */
     private $manifest;
 
     /**
-     * The service provider factory.
+     * Set up a service provider collection with the given manifest file.
      *
-     * @var \Ellipse\Binder\ServiceProviderFactory
+     * @param \Ellipse\Binder\ManifestFile $manifest
      */
-    private $factory;
-
-    /**
-     * Return a new ServiceProviderCollection from the given manifest file.
-     *
-     * @param \Ellipse\Binder\ManifestFile
-     */
-    public static function newInstance(ManifestFile $manifest): ServiceProviderCollection
-    {
-        $factory = ServiceProviderFactory::newInstance();
-
-        return new ServiceProviderCollection($manifest, $factory);
-    }
-
-    /**
-     * Set up a service provider collection from the given manifest file and
-     * the given service provider factory.
-     *
-     * @param \Ellipse\Binder\ManifestFile              $manifest
-     * @param \Ellipse\Binder\ServiceProviderFactory    $factory
-     */
-    public function __construct(ManifestFile $manifest, ServiceProviderFactory $factory)
+    public function __construct(ManifestFile $manifest)
     {
         $this->manifest = $manifest;
-        $this->factory = $factory;
     }
 
     /**
@@ -56,6 +32,12 @@ class ServiceProviderCollection
     {
         $definitions = $this->manifest->definitions();
 
-        return array_map($this->factory, $definitions);
+        $factory = function ($definition) {
+
+            return $definition->toServiceProvider();
+
+        };
+
+        return array_map($factory, $definitions);
     }
 }

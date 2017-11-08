@@ -4,7 +4,7 @@ use function Eloquent\Phony\Kahlan\mock;
 
 use League\Flysystem\File;
 
-use Ellipse\Binder\JsonFile;
+use Ellipse\Binder\Files\JsonFile;
 
 describe('JsonFile', function () {
 
@@ -42,9 +42,8 @@ describe('JsonFile', function () {
 
             $this->file->put->returns(true);
 
-            $test = $this->json->write($data, 16);
+            $this->json->write($data, 16);
 
-            expect($test)->toBeTruthy();
             $this->file->put->calledWith($contents);
 
         });
@@ -57,14 +56,23 @@ describe('JsonFile', function () {
 
             $this->file->put->returns(true);
 
-            $test = $this->json->write($data);
+            $this->json->write($data);
 
-            expect($test)->toBeTruthy();
             $this->file->put->calledWith($contents);
 
         });
 
-        it('should return false when the file ->write() method returns false', function () {
+        it('should return true when the file ->put() method returns true', function () {
+
+            $this->file->put->returns(true);
+
+            $test = $this->json->write(['key' => 'value']);
+
+            expect($test)->toBeTruthy();
+
+        });
+
+        it('should return false when the file ->put() method returns false', function () {
 
             $this->file->put->returns(false);
 

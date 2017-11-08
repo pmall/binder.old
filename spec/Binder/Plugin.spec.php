@@ -1,7 +1,5 @@
 <?php
 
-require __DIR__ . '/../Fixtures/definition.php';
-
 use function Eloquent\Phony\Kahlan\mock;
 
 use Composer\Composer;
@@ -13,8 +11,8 @@ use Composer\EventDispatcher\EventSubscriberInterface;
 use Ellipse\Binder\Plugin;
 use Ellipse\Binder\Project;
 use Ellipse\Binder\ManifestFile;
-use Ellipse\Binder\InstalledPackageFile;
-use Ellipse\Binder\ServiceProviderCollection;
+use Ellipse\Binder\InstalledPackagesFile;
+use Ellipse\Binder\Definitions\SerializableDefinition;
 
 describe('Plugin', function () {
 
@@ -50,8 +48,18 @@ describe('Plugin', function () {
 
             $this->project = mock(Project::class);
             $this->manifest = mock(ManifestFile::class);
+            $this->installed = mock(InstalledPackagesFile::class);
+            $this->definition1 = mock(SerializableDefinition::class);
+            $this->definition2 = mock(SerializableDefinition::class);
+            $this->definitions = [
+                $this->definition1->get(),
+                $this->definition2->get(),
+            ];
 
             $this->project->manifest->returns($this->manifest);
+            $this->project->installed->returns($this->installed);
+
+            $this->installed->definitions->returns($this->definitions);
 
             allow(Project::class)->toBe($this->project->get());
 
@@ -59,13 +67,9 @@ describe('Plugin', function () {
 
         it('should update the project manifest file with the project installed package file', function () {
 
-            $installed = mock(InstalledPackageFile::class);
-
-            $this->project->installed->returns($installed->get());
-
             $test = $this->plugin->update();
 
-            $this->manifest->updateWith->calledWith($installed);
+            $this->manifest->updateWith->calledWith($this->definitions);
 
         });
 
@@ -87,13 +91,17 @@ describe('Plugin', function () {
 
             it('should output the new service provider definitions', function () {
 
-                $definitions = definitions(['App\\SomeClass', 'App\\SomeOtherClass']);
+                $data1 = ['key1' => 'value1'];
+                $data2 = ['key2' => 'value2'];
 
-                $this->manifest->definitions->returns($definitions);
+                $this->definition1->jsonSerialize->returns($data1);
+                $this->definition2->jsonSerialize->returns($data2);
 
-                $test = $this->plugin->update();
+                $this->plugin->update();
 
-                $this->io->write->calledWith(json_encode($definitions, JSON_PRETTY_PRINT), true);
+                $this->definition1->jsonSerialize->called();
+                $this->definition2->jsonSerialize->called();
+                $this->io->write->calledWith(json_encode([$data1, $data2], JSON_PRETTY_PRINT), true);
 
             });
 

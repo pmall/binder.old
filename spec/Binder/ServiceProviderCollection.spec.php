@@ -1,55 +1,36 @@
 <?php
 
-require __DIR__ . '/../Fixtures/definition.php';
-
 use function Eloquent\Phony\Kahlan\mock;
 
 use Interop\Container\ServiceProviderInterface;
 
 use Ellipse\Binder\ManifestFile;
-use Ellipse\Binder\ServiceProviderFactory;
 use Ellipse\Binder\ServiceProviderCollection;
+use Ellipse\Binder\Definitions\DefinitionInterface;
 
 describe('ServiceProviderCollection', function () {
 
     beforeEach(function () {
 
         $this->manifest = mock(ManifestFile::class);
-        $this->factory = mock(ServiceProviderFactory::class);
 
-        $this->collection = new ServiceProviderCollection(
-            $this->manifest->get(),
-            $this->factory->get()
-        );
-
-    });
-
-    describe('::newInstance()', function () {
-
-        it('should return a new ServiceProviderCollection', function () {
-
-            $test = ServiceProviderCollection::newInstance($this->manifest->get());
-
-            expect($test)->toBeAnInstanceOf(ServiceProviderCollection::class);
-
-        });
+        $this->collection = new ServiceProviderCollection($this->manifest->get());
 
     });
 
     describe('->toArray()', function () {
 
-        it('should proxy the factory ->__invoke() method with all the definition from the manifest file', function () {
+        it('should return all the definitions from the manifest file as service providers', function () {
 
-            $definition1 = definition('App\\SomeClass');
-            $definition2 = definition('App\\SomeOtherClass');
-
+            $definition1 = mock(DefinitionInterface::class);
+            $definition2 = mock(DefinitionInterface::class);
             $provider1 = mock(ServiceProviderInterface::class)->get();
             $provider2 = mock(ServiceProviderInterface::class)->get();
 
-            $this->manifest->definitions->returns([$definition1, $definition2]);
+            $definition1->toServiceProvider->returns($provider1);
+            $definition2->toServiceProvider->returns($provider2);
 
-            $this->factory->__invoke->with($definition1)->returns($provider1);
-            $this->factory->__invoke->with($definition2)->returns($provider2);
+            $this->manifest->definitions->returns([$definition1->get(), $definition2->get()]);
 
             $test = $this->collection->toArray();
 

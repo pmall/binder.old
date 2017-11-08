@@ -6,9 +6,9 @@ use League\Flysystem\File;
 
 use Ellipse\Binder\Files\JsonFile;
 use Ellipse\Binder\Files\DefinitionFile;
-use Ellipse\Binder\Files\SingleManifestFile;
+use Ellipse\Binder\Files\MultiManifestFile;
 
-class ManifestFile
+class InstalledPackagesFile
 {
     /**
      * The definition file.
@@ -18,17 +18,18 @@ class ManifestFile
     private $file;
 
     /**
-     * Return a new manifest file with the given file and definition factory.
+     * Return a new installed packages file with the given file and definition
+     * factory.
      *
      * @param \Ellipse\Binder\Files\DefinitionFile  $file
      * @param \Ellipse\Binder\DefinitionFactory     $factory
-     * @return \Ellipse\Binder\ManifestFile
+     * @return \Ellipse\Binder\InstalledPackagesFile
      */
-    public static function newInstance(File $file, DefinitionFactory $factory): ManifestFile
+    public static function newInstance(File $file, DefinitionFactory $factory): InstalledPackagesFile
     {
-        return new ManifestFile(
+        return new InstalledPackagesFile(
             new DefinitionFile(
-                new SingleManifestFile(
+                new MultiManifestFile(
                     new JsonFile(
                         $file
                     )
@@ -39,7 +40,7 @@ class ManifestFile
     }
 
     /**
-     * Set up a manifest file with the given definition file.
+     * Set up an installed packages file with the given definition file.
      *
      * @param \Ellipse\Binder\Files\DefinitionFile $file
      */
@@ -49,23 +50,12 @@ class ManifestFile
     }
 
     /**
-     * Return the definitions contained in the manifest file.
+     * Return the definitions contained in the installed packages file.
      *
      * @return array
      */
     public function definitions(): array
     {
         return $this->file->definitions();
-    }
-
-    /**
-     * Update the manifest file contents with the given array of definitions.
-     *
-     * @param array
-     * @return bool
-     */
-    public function updateWith(array $definitions): bool
-    {
-        return $this->file->updateWith($definitions);
     }
 }

@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Ellipse\Binder;
+namespace Ellipse\Binder\Files;
 
 use League\Flysystem\File;
 
