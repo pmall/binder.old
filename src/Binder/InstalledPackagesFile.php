@@ -2,6 +2,10 @@
 
 namespace Ellipse\Binder;
 
+use Composer\Config;
+
+use League\Flysystem\Filesystem;
+use League\Flysystem\Adapter\Local;
 use League\Flysystem\File;
 
 use Ellipse\Binder\Files\JsonFile;
@@ -18,18 +22,21 @@ class InstalledPackagesFile
     private $file;
 
     /**
-     * Return a new installed packages file with the given file.
+     * Return a new installed packages file using the given composer config.
      *
-     * @param \League\Flysystem\File $file
+     * @param \Composer\Config $config
      * @return \Ellipse\Binder\InstalledPackagesFile
      */
-    public static function newInstance(File $file): InstalledPackagesFile
+    public static function newInstance(Config $config): InstalledPackagesFile
     {
         return new InstalledPackagesFile(
             DefinitionFile::newInstance(
                 new MultiManifestFile(
                     new JsonFile(
-                        $file
+                        new File(
+                            new Filesystem(new Local('/')),
+                            $config->get('vendor-dir') . '/composer/installed.json'
+                        )
                     )
                 )
             )

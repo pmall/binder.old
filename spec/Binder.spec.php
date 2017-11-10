@@ -5,16 +5,16 @@ use function Eloquent\Phony\Kahlan\mock;
 use Interop\Container\ServiceProviderInterface;
 
 use Ellipse\Binder;
-use Ellipse\Binder\Project;
-use Ellipse\Binder\ServiceProviderCollection;
+use Ellipse\Binder\Filesystem;
+use Ellipse\Binder\ManifestFile;
 
 describe('Binder', function () {
 
     beforeEach(function () {
 
-        $this->project = mock(Project::class);
+        $this->manifest = mock(ManifestFile::class);
 
-        $this->binder = new Binder($this->project->get());
+        $this->binder = new Binder($this->manifest->get());
 
     });
 
@@ -22,7 +22,7 @@ describe('Binder', function () {
 
         it('should return a Binder instance', function () {
 
-            $test = Binder::newInstance(sys_get_temp_dir());
+            $test = Binder::newInstance(getcwd());
 
             expect($test)->toBeAnInstanceOf(Binder::class);
 
@@ -32,23 +32,18 @@ describe('Binder', function () {
 
     describe('->providers()', function () {
 
-        it('should return an array of service provider instances built from the project manifest file definitions', function () {
+        it('should return the service providers defined by the project manifest file', function () {
 
             $providers = [
                 mock(ServiceProviderInterface::class)->get(),
                 mock(ServiceProviderInterface::class)->get(),
             ];
 
-            $collection = mock(ServiceProviderCollection::class);
-
-            $collection->toArray->returns($providers);
-
-            allow(ServiceProviderCollection::class)->toBe($collection->get());
+            $this->manifest->providers->returns($providers);
 
             $test = $this->binder->providers();
 
             expect($test)->toEqual($providers);
-            $this->project->manifest->called();
 
         });
 

@@ -2,7 +2,7 @@
 
 use function Eloquent\Phony\Kahlan\mock;
 
-use League\Flysystem\File;
+use Interop\Container\ServiceProviderInterface;
 
 use Ellipse\Binder\ManifestFile;
 use Ellipse\Binder\Files\DefinitionFile;
@@ -22,9 +22,7 @@ describe('ManifestFile', function () {
 
         it('should return a new ManifestFile', function () {
 
-            $file = mock(File::class)->get();
-
-            $test = ManifestFile::newInstance($file);
+            $test = ManifestFile::newInstance(getcwd());
 
             expect($test)->toBeAnInstanceOf(ManifestFile::class);
 
@@ -32,20 +30,24 @@ describe('ManifestFile', function () {
 
     });
 
-    describe('->definitions()', function () {
+    describe('->providers()', function () {
 
-        it('should proxy the definition file ->definitions() method', function () {
+        it('should return the service providers defined in the manifest file', function () {
 
-            $definitions = [
-                mock(DefinitionInterface::class)->get(),
-                mock(DefinitionInterface::class)->get(),
-            ];
+            $definition1 = mock(DefinitionInterface::class);
+            $definition2 = mock(DefinitionInterface::class);
 
-            $this->file->definitions->returns($definitions);
+            $provider1 = mock(ServiceProviderInterface::class)->get();
+            $provider2 = mock(ServiceProviderInterface::class)->get();
 
-            $test = $this->manifest->definitions();
+            $definition1->toServiceProvider->returns($provider1);
+            $definition2->toServiceProvider->returns($provider2);
 
-            expect($test)->toEqual($definitions);
+            $this->file->definitions->returns([$definition1->get(), $definition2->get()]);
+
+            $test = $this->manifest->providers();
+
+            expect($test)->toEqual([$provider1, $provider2]);
 
         });
 

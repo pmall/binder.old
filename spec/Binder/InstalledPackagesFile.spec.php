@@ -2,7 +2,7 @@
 
 use function Eloquent\Phony\Kahlan\mock;
 
-use League\Flysystem\File;
+use Composer\Config;
 
 use Ellipse\Binder\InstalledPackagesFile;
 use Ellipse\Binder\Files\DefinitionFile;
@@ -22,9 +22,9 @@ describe('InstalledPackagesFile', function () {
 
         it('should return a new InstalledPackagesFile', function () {
 
-            $file = mock(File::class)->get();
+            $config = mock(Config::class)->get();
 
-            $test = InstalledPackagesFile::newInstance($file);
+            $test = InstalledPackagesFile::newInstance($config);
 
             expect($test)->toBeAnInstanceOf(InstalledPackagesFile::class);
 

@@ -2,6 +2,8 @@
 
 use function Eloquent\Phony\Kahlan\mock;
 
+use League\Flysystem\Filesystem;
+use League\Flysystem\Adapter\Local;
 use League\Flysystem\File;
 
 use Ellipse\Binder\Files\JsonFile;

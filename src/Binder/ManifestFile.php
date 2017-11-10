@@ -2,6 +2,10 @@
 
 namespace Ellipse\Binder;
 
+use Composer\Factory;
+
+use League\Flysystem\Filesystem;
+use League\Flysystem\Adapter\Local;
 use League\Flysystem\File;
 
 use Ellipse\Binder\Files\JsonFile;
@@ -18,18 +22,21 @@ class ManifestFile
     private $file;
 
     /**
-     * Return a new manifest file with the given file.
+     * Return a new manifest file using the given project root path.
      *
-     * @param \League\Flysystem\File $file
+     * @param string $root
      * @return \Ellipse\Binder\ManifestFile
      */
-    public static function newInstance(File $file): ManifestFile
+    public static function newInstance(string $root): ManifestFile
     {
         return new ManifestFile(
             DefinitionFile::newInstance(
                 new SingleManifestFile(
                     new JsonFile(
-                        $file
+                        new File(
+                            new Filesystem(new Local($root)),
+                            Factory::getComposerFile()
+                        )
                     )
                 )
             )
@@ -51,9 +58,17 @@ class ManifestFile
      *
      * @return array
      */
-    public function definitions(): array
+    public function providers(): array
     {
-        return $this->file->definitions();
+        $definitions = $this->file->definitions();
+
+        $factory = function ($definition) {
+
+            return $definition->toServiceProvider();
+
+        };
+
+        return array_map($factory, $definitions);
     }
 
     /**

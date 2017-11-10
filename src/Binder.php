@@ -2,15 +2,15 @@
 
 namespace Ellipse;
 
-use Ellipse\Binder\Project;
-use Ellipse\Binder\ServiceProviderCollection;
+use Ellipse\Binder\RootFilesystem;
+use Ellipse\Binder\ManifestFile;
 
 class Binder
 {
     /**
-     * The project.
+     * The project ManifestFile.
      *
-     * @var \Ellipse\Binder\Project
+     * @var \Ellipse\Binder\ManifestFile
      */
     private $project;
 
@@ -22,30 +22,28 @@ class Binder
      */
     public static function newInstance(string $root): Binder
     {
-        $project = Project::newInstance($root);
+        $manifest = ManifestFile::newInstance($root);
 
-        return new Binder($project);
+        return new Binder($manifest);
     }
 
     /**
-     * Set up a binder with the given project.
+     * Set up a binder with the given manifest file.
      *
-     * @param \Ellipse\Binder\Project $project
+     * @param \Ellipse\Binder\ManifestFile $manifest
      */
-    public function __construct(Project $project)
+    public function __construct(ManifestFile $manifest)
     {
-        $this->project = $project;
+        $this->manifest = $manifest;
     }
 
     /**
-     * Return an array of service providers from the project manifest file.
+     * Return the service providers defined in the project manifest file.
      *
      * @return array
      */
     public function providers(): array
     {
-        $manifest = $this->project->manifest();
-
-        return (new ServiceProviderCollection($manifest))->toArray();
+        return $this->manifest->providers();
     }
 }

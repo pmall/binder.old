@@ -9,7 +9,6 @@ use Composer\Plugin\PluginInterface;
 use Composer\EventDispatcher\EventSubscriberInterface;
 
 use Ellipse\Binder\Plugin;
-use Ellipse\Binder\Project;
 use Ellipse\Binder\ManifestFile;
 use Ellipse\Binder\InstalledPackagesFile;
 use Ellipse\Binder\Definition;
@@ -19,6 +18,7 @@ describe('Plugin', function () {
     beforeEach(function () {
 
         $composer = mock(Composer::class);
+
         $this->config = mock(Config::class);
         $this->io = mock(IOInterface::class);
 
@@ -46,9 +46,11 @@ describe('Plugin', function () {
 
         beforeEach(function () {
 
-            $this->project = mock(Project::class);
+            $this->config->get->with('vendor-dir')->returns('path');
+
             $this->manifest = mock(ManifestFile::class);
             $this->installed = mock(InstalledPackagesFile::class);
+
             $this->definition1 = mock(Definition::class);
             $this->definition2 = mock(Definition::class);
             $this->definitions = [
@@ -56,18 +58,16 @@ describe('Plugin', function () {
                 $this->definition2->get(),
             ];
 
-            $this->project->manifest->returns($this->manifest);
-            $this->project->installed->returns($this->installed);
-
             $this->installed->definitions->returns($this->definitions);
 
-            allow(Project::class)->toBe($this->project->get());
+            allow(ManifestFile::class)->toBe($this->manifest->get());
+            allow(InstalledPackagesFile::class)->toBe($this->installed->get());
 
         });
 
         it('should update the project manifest file with the project installed package file', function () {
 
-            $test = $this->plugin->update();
+            $this->plugin->update();
 
             $this->manifest->updateWith->calledWith($this->definitions);
 

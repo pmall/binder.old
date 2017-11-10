@@ -50,14 +50,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public function update(): bool
     {
-        $vendor = $this->composer->getConfig()->get('vendor-dir');
+        $root = getcwd();
+        $config = $this->composer->getConfig();
 
-        $root = realpath($vendor . '/..');
-
-        $project = Project::newInstance($root);
-
-        $manifest = $project->manifest();
-        $installed = $project->installed();
+        $manifest = ManifestFile::newInstance($root);
+        $installed = InstalledPackagesFile::newInstance($config);
 
         $definitions = $installed->definitions();
 
