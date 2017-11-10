@@ -4,7 +4,6 @@ use function Eloquent\Phony\Kahlan\mock;
 
 use League\Flysystem\File;
 
-use Ellipse\Binder\DefinitionFactory;
 use Ellipse\Binder\InstalledPackagesFile;
 use Ellipse\Binder\Files\DefinitionFile;
 use Ellipse\Binder\Definitions\DefinitionInterface;
@@ -24,9 +23,8 @@ describe('InstalledPackagesFile', function () {
         it('should return a new InstalledPackagesFile', function () {
 
             $file = mock(File::class)->get();
-            $factory = mock(DefinitionFactory::class)->get();
 
-            $test = InstalledPackagesFile::newInstance($file, $factory);
+            $test = InstalledPackagesFile::newInstance($file);
 
             expect($test)->toBeAnInstanceOf(InstalledPackagesFile::class);
 

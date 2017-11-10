@@ -12,7 +12,7 @@ use Ellipse\Binder\Plugin;
 use Ellipse\Binder\Project;
 use Ellipse\Binder\ManifestFile;
 use Ellipse\Binder\InstalledPackagesFile;
-use Ellipse\Binder\Definitions\SerializableDefinition;
+use Ellipse\Binder\Definition;
 
 describe('Plugin', function () {
 
@@ -49,8 +49,8 @@ describe('Plugin', function () {
             $this->project = mock(Project::class);
             $this->manifest = mock(ManifestFile::class);
             $this->installed = mock(InstalledPackagesFile::class);
-            $this->definition1 = mock(SerializableDefinition::class);
-            $this->definition2 = mock(SerializableDefinition::class);
+            $this->definition1 = mock(Definition::class);
+            $this->definition2 = mock(Definition::class);
             $this->definitions = [
                 $this->definition1->get(),
                 $this->definition2->get(),

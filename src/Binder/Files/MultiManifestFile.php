@@ -32,9 +32,7 @@ class MultiManifestFile implements ManifestFileInterface
 
         return array_reduce($data, function ($reduced, $data) {
 
-            $definitions = $data['extra'][self::BINDINGS_KEY] ?? null;
-
-            if (is_null($definitions)) return $reduced;
+            $definitions = $data['extra'][self::BINDINGS_KEY] ?? [];
 
             return array_merge($reduced, $definitions);
 

@@ -18,22 +18,20 @@ class ManifestFile
     private $file;
 
     /**
-     * Return a new manifest file with the given file and definition factory.
+     * Return a new manifest file with the given file.
      *
-     * @param \Ellipse\Binder\Files\DefinitionFile  $file
-     * @param \Ellipse\Binder\DefinitionFactory     $factory
+     * @param \League\Flysystem\File $file
      * @return \Ellipse\Binder\ManifestFile
      */
-    public static function newInstance(File $file, DefinitionFactory $factory): ManifestFile
+    public static function newInstance(File $file): ManifestFile
     {
         return new ManifestFile(
-            new DefinitionFile(
+            DefinitionFile::newInstance(
                 new SingleManifestFile(
                     new JsonFile(
                         $file
                     )
-                ),
-                $factory
+                )
             )
         );
     }

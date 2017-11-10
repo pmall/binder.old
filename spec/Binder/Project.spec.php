@@ -8,16 +8,14 @@ use League\Flysystem\File;
 use Ellipse\Binder\Project;
 use Ellipse\Binder\ManifestFile;
 use Ellipse\Binder\InstalledPackagesFile;
-use Ellipse\Binder\DefinitionFactory;
 
 describe('Project', function () {
 
     beforeEach(function () {
 
         $this->filesystem = mock(FilesystemInterface::class);
-        $this->factory = mock(DefinitionFactory::class);
 
-        $this->project = new Project($this->filesystem->get(), $this->factory->get());
+        $this->project = new Project($this->filesystem->get());
 
     });
 

@@ -16,13 +16,6 @@ class Project
     private $filesystem;
 
     /**
-     * The definition factory.
-     *
-     * @var \Ellipse\Binder\DefinitionFactory
-     */
-    private $factory;
-
-    /**
      * Return a new project with the given root path.
      *
      * @param string $root
@@ -31,21 +24,18 @@ class Project
     public static function newInstance(string $root): Project
     {
         $filesystem = new Filesystem(new Local($root));
-        $factory = DefinitionFactory::newInstance();
 
-        return new Project($filesystem, $factory);
+        return new Project($filesystem);
     }
 
     /**
-     * Set up a Project with the given filesystem and definition factory.
+     * Set up a project with the given filesystem.
      *
      * @param \League\Flysystem\FilesystemInterface $filesystem
-     * @param \Ellipse\Binder\DefinitionFactory     $factory
      */
-    public function __construct(FilesystemInterface $filesystem, DefinitionFactory $factory)
+    public function __construct(FilesystemInterface $filesystem)
     {
         $this->filesystem = $filesystem;
-        $this->factory = $factory;
     }
 
     /**
@@ -56,8 +46,7 @@ class Project
     public function manifest(): ManifestFile
     {
         return ManifestFile::newInstance(
-            $this->filesystem->get('composer.json'),
-            $this->factory
+            $this->filesystem->get('composer.json')
         );
     }
 
@@ -69,8 +58,7 @@ class Project
     public function installed(): InstalledPackagesFile
     {
         return InstalledPackagesFile::newInstance(
-            $this->filesystem->get('vendor/composer/installed.json'),
-            $this->factory
+            $this->filesystem->get('vendor/composer/installed.json')
         );
     }
 }

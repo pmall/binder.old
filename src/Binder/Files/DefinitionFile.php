@@ -2,7 +2,7 @@
 
 namespace Ellipse\Binder\Files;
 
-use Ellipse\Binder\DefinitionFactory;
+use Ellipse\Binder\Definition;
 
 class DefinitionFile
 {
@@ -11,25 +11,36 @@ class DefinitionFile
      *
      * @var \Ellipse\Binder\Files\ManifestFileInterface
      */
-    private $file;
+    private $manifest;
 
     /**
      * The definition factory.
      *
-     * @var \Ellipse\Binder\DefinitionFactory
+     * @var callable
      */
     private $factory;
+
+    /**
+     * Return a new definition file with the given manifest file.
+     *
+     * @param \Ellipse\Binder\Files\ManifestFileInterface $manifest
+     * @return \Ellipse\Binder\Files\DefinitionFile
+     */
+    public static function newInstance(ManifestFileInterface $manifest): DefinitionFile
+    {
+        return new DefinitionFile($manifest, [Definition::class, 'newInstance']);
+    }
 
     /**
      * Set up a definition file with the given manifest file and definition
      * factory.
      *
-     * @param \Ellipse\Binder\Files\ManifestFileInterface
-     * @param \Ellipse\Binder\DefinitionFactory
+     * @param \Ellipse\Binder\Files\ManifestFileInterface   $manifest
+     * @param callable                                      $factory
      */
-    public function __construct(ManifestFileInterface $file, DefinitionFactory $factory)
+    public function __construct(ManifestFileInterface $manifest, callable $factory)
     {
-        $this->file = $file;
+        $this->manifest = $manifest;
         $this->factory = $factory;
     }
 
@@ -40,7 +51,7 @@ class DefinitionFile
      */
     public function definitions(): array
     {
-        $data = $this->file->read();
+        $data = $this->manifest->read();
 
         return array_map($this->factory, $data);
     }
@@ -59,6 +70,6 @@ class DefinitionFile
 
         }, $definitions);
 
-        return $this->file->write($data);
+        return $this->manifest->write($data);
     }
 }

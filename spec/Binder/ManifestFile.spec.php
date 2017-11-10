@@ -4,7 +4,6 @@ use function Eloquent\Phony\Kahlan\mock;
 
 use League\Flysystem\File;
 
-use Ellipse\Binder\DefinitionFactory;
 use Ellipse\Binder\ManifestFile;
 use Ellipse\Binder\Files\DefinitionFile;
 use Ellipse\Binder\Definitions\DefinitionInterface;
@@ -24,9 +23,8 @@ describe('ManifestFile', function () {
         it('should return a new ManifestFile', function () {
 
             $file = mock(File::class)->get();
-            $factory = mock(DefinitionFactory::class)->get();
 
-            $test = ManifestFile::newInstance($file, $factory);
+            $test = ManifestFile::newInstance($file);
 
             expect($test)->toBeAnInstanceOf(ManifestFile::class);
 

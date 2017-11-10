@@ -18,23 +18,20 @@ class InstalledPackagesFile
     private $file;
 
     /**
-     * Return a new installed packages file with the given file and definition
-     * factory.
+     * Return a new installed packages file with the given file.
      *
-     * @param \Ellipse\Binder\Files\DefinitionFile  $file
-     * @param \Ellipse\Binder\DefinitionFactory     $factory
+     * @param \League\Flysystem\File $file
      * @return \Ellipse\Binder\InstalledPackagesFile
      */
-    public static function newInstance(File $file, DefinitionFactory $factory): InstalledPackagesFile
+    public static function newInstance(File $file): InstalledPackagesFile
     {
         return new InstalledPackagesFile(
-            new DefinitionFile(
+            DefinitionFile::newInstance(
                 new MultiManifestFile(
                     new JsonFile(
                         $file
                     )
-                ),
-                $factory
+                )
             )
         );
     }

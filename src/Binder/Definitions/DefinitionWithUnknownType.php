@@ -4,10 +4,9 @@ namespace Ellipse\Binder\Definitions;
 
 use Interop\Container\ServiceProviderInterface;
 
-use Ellipse\Binder\Exceptions\DefinitionTypeMissingException;
-use Ellipse\Binder\Exceptions\DefinitionTypeNotValidException;
+use \Ellipse\Binder\Definitions\Exceptions\DefinitionTypeUnknownException;
 
-class UnknownTypeDefinition implements DefinitionInterface
+class DefinitionWithUnknownType implements DefinitionInterface
 {
     /**
      * The definition data.
@@ -17,7 +16,7 @@ class UnknownTypeDefinition implements DefinitionInterface
     private $data;
 
     /**
-     * Set up an unknown type definition with the given data.
+     * Set up a definition with unknown type with the given definition data.
      *
      * @param array $data
      */
@@ -39,14 +38,6 @@ class UnknownTypeDefinition implements DefinitionInterface
      */
     public function toServiceProvider(): ServiceProviderInterface
     {
-        $type = $this->data['type'] ?? null;
-
-        if (is_null($type)) {
-
-            throw new DefinitionTypeMissingException($this->data);
-
-        }
-
-        throw new DefinitionTypeNotValidException($type);
+        throw new DefinitionTypeUnknownException($this->data);
     }
 }

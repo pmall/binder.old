@@ -7,6 +7,13 @@ use Interop\Container\ServiceProviderInterface;
 interface DefinitionInterface
 {
     /**
+     * The value of the key containing the definition type.
+     *
+     * @var string
+     */
+    const TYPE_KEY = 'type';
+
+    /**
      * Return the definition as an array.
      *
      * @return array
@@ -17,7 +24,7 @@ interface DefinitionInterface
      * Return the service provider defined by this definition data.
      *
      * @return \Interop\Container\ServiceProviderInterface
-     * @throws \Ellipse\Binder\Exceptions\BinderExceptionInterface
+     * @throws \Ellipse\Binder\Definitions\Exceptions\DefinitionExceptionInterface
      */
     public function toServiceProvider(): ServiceProviderInterface;
 }

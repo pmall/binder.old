@@ -1,8 +1,9 @@
 <?php
 
 use function Eloquent\Phony\Kahlan\mock;
+use function Eloquent\Phony\Kahlan\stub;
 
-use Ellipse\Binder\DefinitionFactory;
+use Ellipse\Binder\Definition;
 use Ellipse\Binder\Files\DefinitionFile;
 use Ellipse\Binder\Files\ManifestFileInterface;
 use Ellipse\Binder\Definitions\DefinitionInterface;
@@ -12,9 +13,21 @@ describe('DefinitionFile', function () {
     beforeEach(function () {
 
         $this->manifest = mock(ManifestFileInterface::class);
-        $this->factory = mock(DefinitionFactory::class);
+        $this->factory = stub();
 
-        $this->file = new DefinitionFile($this->manifest->get(), $this->factory->get());
+        $this->file = new DefinitionFile($this->manifest->get(), $this->factory);
+
+    });
+
+    describe('::newInstance', function () {
+
+        it('should return a new DefinitionFile', function () {
+
+            $test = DefinitionFile::newInstance($this->manifest->get());
+
+            expect($test)->toBeAnInstanceOf(DefinitionFile::class);
+
+        });
 
     });
 
@@ -30,15 +43,14 @@ describe('DefinitionFile', function () {
 
             $this->manifest->read->returns([$data1, $data2]);
 
-            $this->factory->__invoke->with($data1)->returns($definition1);
-            $this->factory->__invoke->with($data2)->returns($definition2);
+            $this->factory->with($data1)->returns($definition1);
+            $this->factory->with($data2)->returns($definition2);
 
             $test = $this->file->definitions();
 
             expect($test)->toEqual([$definition1, $definition2]);
 
         });
-
 
     });
 
